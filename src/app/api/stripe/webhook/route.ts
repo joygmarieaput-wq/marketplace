@@ -50,20 +50,92 @@ export async function POST(request: NextRequest) {
         const supabase = getSupabaseAdmin();
 
         switch (event.type) {
-
-            // Successful payment
             case "checkout.session.completed":
-            case "checkout.session.async_payment_succeeded": {
-
-                const session = event.data.object as Stripe.Checkout.Session;
-
-                if (session.payment_status !== "paid") {
-                    break;
-                }
+            case "checkout.session.async_payment_succeeded":
+            case "checkout.session.expired":
+            case "checkout.session.async_payment_failed": {
+                const session =
+                    event.data.object as Stripe.Checkout.Session;
 
                 const orderId = session.metadata?.order_id;
 
-                if (!orderId || !event.account) {
+                // Ignore unrelated events from the shared sandbox
+                if (
+                    !orderId ||
+                    !event.account ||
+                    !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderId)
+                ) {
+                    break;
+                }
+
+                // Verify that the connected account belongs
+                // to our Marketplace.
+                const { data: seller, error: sellerError } =
+                    await supabase
+                        .from("sellers")
+                        .select("id")
+                        .eq("stripe_account_id", event.account)
+                        .maybeSingle();
+
+                if (sellerError) {
+                    throw sellerError;
+                }
+
+                if (!seller) {
+                    break;
+                }
+
+                // Verify that the order belongs to our Marketplace
+                // and to the connected seller.
+                const { data: order, error: orderError } =
+                    await supabase
+                        .from("orders")
+                        .select(
+                            "id, stripe_checkout_session_id, payment_status"
+                        )
+                        .eq("id", orderId)
+                        .eq("seller_id", seller.id)
+                        .maybeSingle();
+
+                if (orderError) {
+                    throw orderError;
+                }
+
+                if (!order) {
+                    break;
+                }
+
+                if (
+                    order.stripe_checkout_session_id &&
+                    order.stripe_checkout_session_id !== session.id
+                ) {
+                    break;
+                }
+
+                // Expired or failed payment
+                if (
+                    event.type === "checkout.session.expired" ||
+                    event.type === "checkout.session.async_payment_failed"
+                ) {
+                    const { error } = await supabase
+                        .from("orders")
+                        .update({
+                            payment_status: "failed",
+                        })
+                        .eq("id", orderId)
+                        .eq("seller_id", seller.id)
+                        .eq("stripe_checkout_session_id", session.id)
+                        .eq("payment_status", "pending");
+
+                    if (error) {
+                        throw error;
+                    }
+
+                    break;
+                }
+
+                // Only process successful payments
+                if (session.payment_status !== "paid") {
                     break;
                 }
 
@@ -103,60 +175,18 @@ export async function POST(request: NextRequest) {
                 break;
             }
 
-            // Expired or failed payment
-            case "checkout.session.expired":
-            case "checkout.session.async_payment_failed": {
-
-                const session = event.data.object as Stripe.Checkout.Session;
-
-                const orderId = session.metadata?.order_id;
-
-                if (!orderId || !event.account) {
-                    break;
-                }
-
-                const { data: seller, error: sellerError } =
-                    await supabase
-                        .from("sellers")
-                        .select("id")
-                        .eq("stripe_account_id", event.account)
-                        .maybeSingle();
-
-                if (sellerError) {
-                    throw sellerError;
-                }
-
-                if (!seller) {
-                    break;
-                }
-
-                const { error } = await supabase
-                    .from("orders")
-                    .update({
-                        payment_status: "failed",
-                    })
-                    .eq("id", orderId)
-                    .eq("seller_id", seller.id)
-                    .eq("stripe_checkout_session_id", session.id)
-                    .eq("payment_status", "pending");
-
-                if (error) {
-                    throw error;
-                }
-
-                console.log("Checkout expired or failed:", orderId);
-
+            case "account.updated":
+                // Account status is refreshed through
+                // our existing Stripe status API.
                 break;
-            }
 
             default:
-                console.log("Unhandled Stripe event:", event.type);
+                break;
         }
 
         return NextResponse.json({
             received: true,
         });
-
     } catch (error) {
         console.error("Stripe webhook error:", error);
 
