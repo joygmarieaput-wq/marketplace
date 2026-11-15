@@ -10,33 +10,50 @@ interface ListingCardProps {
 export default function ListingCard({
     listing,
 }: ListingCardProps) {
+
+    const isSold = listing.status === "sold";
+
     return (
         <Link
             href={`/listings/${listing.id}`}
             className="group block min-w-0"
         >
-            {/* Product photo */}
+
+            {/* Product image */}
             <div className="relative aspect-square overflow-hidden rounded-lg bg-[#e4e6eb]">
+
                 {listing.image_url ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
                     <img
                         src={listing.image_url}
                         alt={listing.title}
                         loading="lazy"
-                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                        className={`h-full w-full object-cover transition duration-300 ${
+                            isSold
+                                ? "opacity-60"
+                                : "group-hover:scale-105"
+                        }`}
                     />
                 ) : (
-                    <div className="flex h-full items-center justify-center">
+                    <div className="flex h-full w-full items-center justify-center">
                         <ImageIcon
                             size={40}
-                            className="text-[#bcc0c4]"
+                            className="text-[#65676b]"
                         />
                     </div>
                 )}
+
+                {/* Sold badge */}
+                {isSold && (
+                    <div className="absolute left-3 top-3 rounded-md bg-red-600 px-3 py-1.5 text-xs font-bold tracking-wide text-white shadow-sm">
+                        SOLD
+                    </div>
+                )}
+
             </div>
 
             {/* Product information */}
-            <div className="space-y-1 py-3">
+            <div className="space-y-1 pt-2">
+
                 <p className="text-lg font-bold text-[#050505]">
                     {formatPrice(listing.price)}
                 </p>
@@ -45,10 +62,12 @@ export default function ListingCard({
                     {listing.title}
                 </h3>
 
-                <p className="truncate text-xs text-[#65676b]">
+                <p className="truncate text-sm text-[#65676b]">
                     {listing.location || "Palo Alto, CA"}
                 </p>
+
             </div>
+
         </Link>
     );
 }

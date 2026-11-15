@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { MessageCircle } from "lucide-react";
 
 import { sendSellerMessage } from "@/lib/messages";
 
@@ -88,9 +89,21 @@ export default function MessageSeller({
 
     return (
         <section>
-            <h2 className="mb-4 text-lg font-bold">
-                Send seller a message
-            </h2>
+            <div className="mb-5 flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#e7f3ff]">
+                    <MessageCircle className="h-5 w-5 text-[#1877f2]" />
+                </div>
+
+                <div>
+                    <h2 className="text-base font-semibold text-[#050505]">
+                        Message seller
+                    </h2>
+
+                    <p className="mt-0.5 text-xs text-[#65676b]">
+                        Have questions about this item?
+                    </p>
+                </div>
+            </div>
 
             <form onSubmit={handleSubmit}>
                 <fieldset

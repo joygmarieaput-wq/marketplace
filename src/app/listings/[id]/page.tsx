@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import MessageSeller from "@/components/marketplace/MessageSeller";
+import BuyNow from "@/components/marketplace/BuyNow";
 
 import {
     ArrowLeft,
@@ -140,30 +141,33 @@ export default function ListingDetailPage() {
                     </div>
                 ) : (
                     /* Listing details */
-                    <div className="grid overflow-hidden rounded-xl border border-[#dadde1] bg-white lg:grid-cols-[minmax(0,1fr)_380px]">
+                    <div className="grid overflow-hidden rounded-xl border border-[#dadde1] bg-white lg:h-[calc(100dvh-160px)] lg:grid-cols-[minmax(0,1fr)_380px] lg:grid-rows-[minmax(0,1fr)]">
 
                         {/* Product image */}
-                        <section className="flex min-h-[350px] items-center justify-center bg-[#e4e6eb] lg:min-h-[650px]">
+                        <div className="relative flex min-h-[320px] items-center justify-center overflow-hidden bg-[#e4e6e9] p-4 lg:h-full lg:min-h-0 lg:p-6">
+
+                            {listing.status === "sold" && (
+                                <div className="absolute left-5 top-5 z-10 rounded-lg bg-red-600 px-4 py-2 text-sm font-bold tracking-wide text-white shadow-sm">
+                                    SOLD
+                                </div>
+                            )}
 
                             {listing.image_url ? (
-                                /* eslint-disable-next-line @next/next/no-img-element */
                                 <img
                                     src={listing.image_url}
                                     alt={listing.title}
-                                    className="max-h-[750px] w-full object-contain"
+                                    className="max-h-[500px] w-full object-contain lg:h-full lg:max-h-full"
                                 />
                             ) : (
-                                <ImageIcon
-                                    size={70}
-                                    strokeWidth={1.2}
-                                    className="text-[#bcc0c4]"
-                                />
+                                <div className="text-sm text-[#65676b]">
+                                    No image available
+                                </div>
                             )}
 
-                        </section>
+                        </div>
 
                         {/* Listing information */}
-                        <aside className="min-w-0 border-t border-[#dadde1] bg-white p-6 lg:border-l lg:border-t-0">
+                        <aside className="min-h-0 min-w-0 border-t border-[#dadde1] bg-white p-6 lg:h-full lg:overflow-y-auto lg:border-l lg:border-t-0">
 
                             <h1 className="break-words text-3xl font-bold text-[#050505]">
                                 {listing.title}
@@ -233,10 +237,21 @@ export default function ListingDetailPage() {
                             <hr className="my-6 border-[#dadde1]" />
 
                             {/* Message seller */}
-                            <MessageSeller
-                                key={listing.id}
-                                listingId={listing.id}
-                            />
+                            <div className="space-y-5">
+                                <BuyNow
+                                    key={`purchase-${listing.id}`}
+                                    listingId={listing.id}
+                                />
+
+                                {listing.status !== "sold" && (
+                                    <div className="rounded-xl border border-[#dadde1] bg-white p-5">
+                                        <MessageSeller
+                                            key={listing.id}
+                                            listingId={listing.id}
+                                        />
+                                    </div>
+                                )}
+                            </div>
 
                         </aside>
 

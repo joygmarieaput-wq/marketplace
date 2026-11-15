@@ -6,6 +6,8 @@ export interface Listing {
     category: string;
     image_url: string | null;
     location: string | null;
+    status: "available" | "sold";
+    sold_at: string | null;
     created_at: string;
     updated_at: string;
 }

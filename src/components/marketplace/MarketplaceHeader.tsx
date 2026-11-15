@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Store, Plus } from "lucide-react";
+import SellerMenu from "@/components/marketplace/SellerMenu";
 
 export default function MarketplaceHeader() {
     return (
@@ -17,20 +18,24 @@ export default function MarketplaceHeader() {
                 </span>
             </Link>
 
-            <Link
-                href="/create"
-                className="flex items-center gap-2 rounded-lg bg-[#1877f2] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#166fe5]"
-            >
-                <Plus size={18} />
+            <div className="flex items-center gap-3">
+                <Link
+                    href="/create"
+                    className="flex items-center gap-2 rounded-lg bg-[#1877f2] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#166fe5]"
+                >
+                    <Plus size={18} />
 
-                <span className="hidden sm:inline">
-                    Create new listing
-                </span>
+                    <span className="hidden sm:inline">
+                        Create new listing
+                    </span>
 
-                <span className="sm:hidden">
-                    Create
-                </span>
-            </Link>
+                    <span className="sm:hidden">
+                        Create
+                    </span>
+                </Link>
+
+                <SellerMenu />
+            </div>
         </header>
     );
 }

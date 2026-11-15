@@ -59,6 +59,8 @@ export async function getListings(): Promise<Listing[]> {
             category,
             image_url,
             location,
+            status,
+            sold_at,
             created_at,
             updated_at
         `)
@@ -84,6 +86,8 @@ export async function getListingById(
             category,
             image_url,
             location,
+            status,
+            sold_at,
             created_at,
             updated_at
         `)
